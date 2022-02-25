@@ -42,7 +42,7 @@ const getPlaceById = async (req, res, next) => {
   } catch (err) {
     const error = new HttpError(
       'Something went wrong, could not find a place.',
-      500,
+      500
     );
 
     return next(error);
@@ -51,7 +51,7 @@ const getPlaceById = async (req, res, next) => {
   if (!place) {
     const error = new HttpError(
       'Could not find a place for the provided id',
-      404,
+      404
     );
     return next(error);
   }
@@ -69,19 +69,19 @@ const getPlacesByUserId = async (req, res, next) => {
   } catch (err) {
     const error = new HttpError(
       'Fetching places failed, please try again later.',
-      500,
+      500
     );
     return next(error);
   }
 
   if (!places || places.length === 0) {
     return next(
-      new HttpError('Could not find a place for the provided user id.', 404),
+      new HttpError('Could not find a place for the provided user id.', 404)
     );
   }
 
   res.json({
-    places: places.map(place => place.toObject({ getters: true })),
+    places: places.map((place) => place.toObject({ getters: true })),
   });
 };
 
@@ -90,7 +90,7 @@ const createPlace = async (req, res, next) => {
   if (!errors.isEmpty()) {
     console.log(errors);
     return next(
-      new HttpError('Invalid inputs passed, please check your data.', 422),
+      new HttpError('Invalid inputs passed, please check your data.', 422)
     );
   }
 
@@ -140,7 +140,7 @@ const createPlace = async (req, res, next) => {
     console.log(err.message);
     const error = new HttpError(
       'Creating place failed, please try again!',
-      500,
+      500
     );
     return next(error);
   }
@@ -152,7 +152,7 @@ const updatePlace = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
-      new HttpError('Invalid inputs passed, please check your data.', 422),
+      new HttpError('Invalid inputs passed, please check your data.', 422)
     );
   }
 
@@ -166,7 +166,7 @@ const updatePlace = async (req, res, next) => {
   } catch (err) {
     const error = new HttpError(
       'Something went wrong, could not update place.',
-      500,
+      500
     );
     return next(error);
   }
@@ -179,7 +179,7 @@ const updatePlace = async (req, res, next) => {
   } catch (err) {
     const error = new HttpError(
       'Something went wrong, could not update place.',
-      500,
+      500
     );
     return next(error);
   }
@@ -193,21 +193,31 @@ const deletePlace = async (req, res, next) => {
   let place;
 
   try {
-    place = await Place.findById(placeId);
+    place = await Place.findById(placeId).populate('creator');
   } catch (err) {
     const error = new HttpError(
       'Something went wrong, could not delete place.',
-      500,
+      500
     );
     return next(error);
   }
 
+  if (!place) {
+    const error = new HttpError('Could not find place for this id.', 404);
+    return next(error);
+  }
+
   try {
-    await place.remove();
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await place.remove({ session: sess });
+    place.creator.places.pull(place);
+    await place.creator.save({session: sess});
+    await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
       'Something went wrong, could not delete place.',
-      500,
+      500
     );
     return next(error);
   }

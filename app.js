@@ -14,7 +14,7 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'Origin, X-Request-With, Content-Type, Accept, Authorization'
+    'Origin, X-Request-With, Content-Type, Accept, Authorization',
   );
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
   next();
@@ -35,9 +35,13 @@ app.use((error, req, res, next) => {
   res.json({ message: error.message || 'An unknown error occurred!' });
 });
 
+// object added as 2nd argument for connect() as workaround to avoid error: User validation failed: _id: Error, expected `_id` to be unique. Value: `.....`
+// occurs if user database in mongoDB has more than 1 user
+// must use mongoose 5.11.3 and mongoose-unique-validator 2.0.3 until solution can be found
 mongoose
   .connect(
-    'mongodb+srv://mars:n3fRS3MdwkOxMti9@cluster0.db63l.mongodb.net/mern?retryWrites=true&w=majority'
+    'mongodb+srv://mars:n3fRS3MdwkOxMti9@cluster0.db63l.mongodb.net/mern?retryWrites=true&w=majority',
+    { useNewUrlParser: true, useUnifiedTopology: true },
   )
   .then(() => {
     app.listen(5000);

@@ -11,6 +11,8 @@ const userSchema = new Schema({
   places: [{ type: mongoose.Types.ObjectId, required: true, ref: 'Place' }],
 });
 
-userSchema.plugin(uniqueValidator);
+// temporarily commented out; produces error: User validation failed: _id: Error, expected `_id` to be unique
+// when calling deletePlace in places-controller
+// userSchema.plugin(uniqueValidator);
 
 module.exports = mongoose.model('User', userSchema);

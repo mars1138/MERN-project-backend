@@ -11,12 +11,12 @@ const getUsers = async (req, res, next) => {
   } catch (err) {
     const error = new HttpError(
       'Fetching users failed, please try again later.',
-      500,
+      500
     );
     return next(error);
   }
 
-  res.json({ users: users.map(user => user.toObject({ getters: true })) });
+  res.json({ users: users.map((user) => user.toObject({ getters: true })) });
 };
 
 const signup = async (req, res, next) => {
@@ -24,7 +24,7 @@ const signup = async (req, res, next) => {
   if (!errors.isEmpty()) {
     console.log(errors);
     return next(
-      new HttpError('Invalid inputs passed, please check your data', 422),
+      new HttpError('Invalid inputs passed, please check your data', 422)
     );
   }
 
@@ -37,7 +37,7 @@ const signup = async (req, res, next) => {
   } catch (err) {
     const error = new HttpError(
       'Signing up failed, please try again later',
-      500,
+      500
     );
     return next(error);
   }
@@ -45,7 +45,7 @@ const signup = async (req, res, next) => {
   if (existingUser) {
     const error = new HttpError(
       'User exists already, please login instead',
-      422,
+      422
     );
     return next(error);
   }
@@ -53,8 +53,7 @@ const signup = async (req, res, next) => {
   const createdUser = new User({
     name,
     email,
-    image:
-      'https://images.unsplash.com/photo-1645610448847-71b25da351b6?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1374&q=80',
+    image: req.file.path,
     password,
     places: [],
   });
@@ -86,7 +85,7 @@ const login = async (req, res, next) => {
   if (!existingUser || existingUser.password !== password) {
     const error = new HttpError(
       'Invalid credentials, could not log you in.',
-      401,
+      401
     );
     return next(error);
   }

@@ -53,7 +53,7 @@ app.use((error, req, res, next) => {
 mongoose
   .connect(
     'mongodb+srv://mars:n3fRS3MdwkOxMti9@cluster0.db63l.mongodb.net/mern?retryWrites=true&w=majority',
-    { useNewUrlParser: true, useUnifiedTopology: true },
+    { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true },
   )
   .then(() => {
     app.listen(5000);

@@ -1,0 +1,8 @@
+{
+  "env": {
+    "DB_USER": "mars",
+    "DB_PASSWORD": "n3fRS3MdwkOxMti9",
+    "DB_NAME": "mern",
+    "JWT_KEY": "supersecret_key"
+  }
+}

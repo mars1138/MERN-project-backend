@@ -1,30 +1,9 @@
 const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const uuid = require('uuid').v4;
-const mongoose = require('mongoose');
-const {
-  S3Client,
-  GetObjectCommand,
-  PutObjectCommand,
-} = require('@aws-sdk/client-s3');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const HttpError = require('../models/http-error');
 const User = require('../models/user');
-
-const bucketName = `${process.env.BUCKET_NAME}`;
-const bucketRegion = `${process.env.BUCKET_REGION}`;
-const accessKeyId = `${process.env.ACCESS_KEY}`;
-const secretAccessKey = `${process.env.SECRET_ACCESS_KEY}`;
-
-const s3 = new S3Client({
-  credentials: {
-    accessKeyId,
-    secretAccessKey,
-  },
-  region: bucketRegion,
-});
 
 const getUsers = async (req, res, next) => {
   let users;
@@ -39,26 +18,13 @@ const getUsers = async (req, res, next) => {
     return next(error);
   }
 
-  const returnUsers = users.map((user) => user.toObject({ getters: true }));
-
-  for (user of returnUsers) {
-    user.image = await getSignedUrl(
-      s3,
-      new GetObjectCommand({
-        Bucket: bucketName,
-        Key: user.image,
-      }),
-      { expiresIn: 3600 }
-    );
-  }
-
-  // res.json({ users: users.map((user) => user.toObject({ getters: true })) });
-  res.json({ users: returnUsers });
+  res.json({ users: users.map((user) => user.toObject({ getters: true })) });
 };
 
 const signup = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log(errors);
     return next(
       new HttpError('Invalid inputs passed, please check your data', 422)
     );
@@ -97,40 +63,18 @@ const signup = async (req, res, next) => {
     return next(error);
   }
 
-  let fileType;
-  let imageName;
-
-  if (req.file) {
-    fileType = req.file.mimetype.split('/')[1];
-    imageName = `${uuid()}.${fileType}`;
-  }
-
   const createdUser = new User({
     name,
     email,
-    image: req.file ? imageName : null,
+    image: req.file.path,
     password: hashedPassword,
     places: [],
   });
 
   try {
-    const sess = await mongoose.startSession();
-    sess.startTransaction();
-    await createdUser.save({ session: sess });
-
-    if (req.file) {
-      params = {
-        Bucket: bucketName,
-        Key: imageName,
-        Body: req.file.buffer,
-        ContentType: req.file.mimetype,
-      };
-
-      await s3.send(new PutObjectCommand(params));
-    }
-
-    await sess.commitTransaction();
+    await createdUser.save();
   } catch (err) {
+    console.log(err.message);
     const error = new HttpError('Signup failed, please try again!', 500);
 
     return next(error);

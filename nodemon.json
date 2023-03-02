@@ -3,6 +3,11 @@
     "DB_USER": "mars",
     "DB_PASSWORD": "n3fRS3MdwkOxMti9",
     "DB_NAME": "mern",
-    "JWT_KEY": "supersecret_key"
+    "JWT_KEY": "supersecret_key",
+    "CLIENT_URL": "http://localhost:3000",
+    "BUCKET_NAME": "mern-project-storage",
+    "BUCKET_REGION": "us-west-2",
+    "ACCESS_KEY": "AKIASDJBL47RI5TDQEZU",
+    "SECRET_ACCESS_KEY": "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"
   }
 }
